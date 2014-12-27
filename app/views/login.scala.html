@@ -1,0 +1,10 @@
+@main("Course Creator") {
+  <h1>Login</h1>
+  <form method="post" action="@{controllers.AuthenticationController.authenticate}">
+    <label>First Name</label>
+    <input name="firstName">
+    <label>Surname</label>
+    <input name="surname">
+    <button type="submit">Create User</button>
+  </form>
+}
