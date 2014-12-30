@@ -92,7 +92,7 @@ object AuthenticationController extends Controller with MongoController {
 
     def onUnauthorized(request: RequestHeader) = Results.Redirect(controllers.routes.AuthenticationController.loginPage())
 
-    def git swithAuth(f: => String => Request[AnyContent] => Result) = {
+    def withAuth(f: => String => Request[AnyContent] => Result) = {
       Security.Authenticated(email, onUnauthorized) { user =>
           Action(request => f(user)(request))
       }
