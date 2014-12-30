@@ -1,0 +1,14 @@
+@main("Course Creator") {
+  <h1>Sign up</h1>
+  <form method="post" action="@{controllers.routes.AuthenticationController.createLogin}">
+    <label>Username</label>
+    <input name="username">
+    <label>Email</label>
+    <input name="email">
+    <label>Password</label>
+    <input type="password" name="password">
+    <label>Please repeat your password</label>
+    <input type="password" name="passwordRepeat">
+    <button type="submit">Create Account</button>
+  </form>
+}
