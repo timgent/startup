@@ -1,0 +1,14 @@
+@main("Course Creator") {
+    <h1>This is my course creator</h1>
+    <a href="@{controllers.routes.AuthenticationController.loginPage}">Login</a>
+    <ul>
+        <li><a href="@{controllers.routes.CoursesController.createCourse}">Create a new course</a></li>
+    </ul>
+    <form method="post" action="@{controllers.routes.UsersController.createUser}">
+        <label>First Name</label>
+        <input name="firstName">
+        <label>Surname</label>
+        <input name="surname">
+        <button type="submit">Create User</button>
+    </form>
+}
