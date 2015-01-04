@@ -1,7 +1,9 @@
 package controllers
 
+import authentication.{Permission, TimAuthenticationModule}
 import models.JsonFormats._
 import models._
+import org.joda.time.DateTime
 import play.api.libs.json._
 import play.api.data.Form
 import play.api.data.Forms._
@@ -23,8 +25,8 @@ object AuthenticationController extends Controller with MongoController {
   def usersCollection: JSONCollection = db.collection[JSONCollection]("users")
 
 
-  def loginPage() = Action.async { implicit request =>
-    Future(Ok(views.html.login()))
+  def loginPage(uri: String = "/") = Action.async { implicit request =>
+    Future(Ok(views.html.login(uri)))
   }
 
   def signupPage() = Action.async { implicit request =>
@@ -33,13 +35,19 @@ object AuthenticationController extends Controller with MongoController {
 
   def authenticate = Action.async { implicit request =>
     loginForm.bindFromRequest.fold(
-      formWithErrors => Future(BadRequest(views.html.login())),
+      formWithErrors => {
+        Future(BadRequest(views.html.login(request.uri)))
+      },
       user => {
-        val (email, password) = (user._1, user._2)
-        val isAuthenticated = checkLogin(email, password)
+        val (email, password, url) = (user._1, user._2, user._3)
+        val isAuthenticated = {
+          checkLogin(email, password)
+        }
+        val redirectLocation = routes.Application.index
+
         isAuthenticated.flatMap{auth =>
-          if (auth) {Future(Redirect(routes.Application.index).withSession(Security.username -> user._1))} //We use the email for Security.username
-          else {Future(Ok("Piss off!! Your login attempt has failed"))}
+          if (auth) {Future(Redirect(url).withSession(Security.username -> user._1))}
+          else {Future(Redirect(controllers.routes.AuthenticationController.loginPage(url)).flashing("login" -> "Your email address or password are incorrect, please try again"))}
         }
       }
     )
@@ -62,7 +70,7 @@ object AuthenticationController extends Controller with MongoController {
         user => {
           val newUser = User(user._1, user._2, user._3)
           usersCollection.insert(newUser)
-          Future(Ok("You've just created a user well done you!!"))
+          Future(Ok(views.html.index()))
         }
       )
     }
@@ -71,7 +79,8 @@ object AuthenticationController extends Controller with MongoController {
   val loginForm = Form(
     tuple(
       "email" -> text,
-      "password" -> text
+      "password" -> text,
+      "url" -> text
     )
   )
 
@@ -80,36 +89,26 @@ object AuthenticationController extends Controller with MongoController {
   }
 
   def logout = Action {
-    Redirect(routes.AuthenticationController.loginPage()).withNewSession.flashing(
+    Redirect(routes.AuthenticationController.loginPage(routes.Application.index().url)).withNewSession.flashing(
       "success" -> "You are now logged out."
     )
   }
 
 
-  trait Secured {
-
-    def email(request: RequestHeader) = request.session.get(Security.username) //We use the email for Security.username
-
-    def onUnauthorized(request: RequestHeader) = Results.Redirect(controllers.routes.AuthenticationController.loginPage())
-
-    def withAuth(f: => String => Request[AnyContent] => Result) = {
-      Security.Authenticated(email, onUnauthorized) { user =>
-          Action(request => f(user)(request))
-      }
+  trait TimSecured extends TimAuthenticationModule[User] {
+    override def whenNotLoggedInDoThis(request: RequestHeader) = {
+//      implicit val flash = Flash(Map("login" -> "Please login to access all of our features"))
+      Redirect(controllers.routes.AuthenticationController.loginPage(request.uri)).flashing("login" -> "Please login to access all of our features")
+//      Ok(views.html.login(Some(request.uri)))
     }
-
-    /**
-     * This method shows how you could wrap the withAuth method to also fetch your user
-     * You will need to implement UserDAO.findOneByUsername
-     */
-    def withUser(f: User => Request[AnyContent] => Result) = withAuth { username => implicit request =>
-      val futureResult = UsersController.findByEmail(username).map { user =>
-        user match {
-          case Some(user) => f(user)(request)
-          case None       => onUnauthorized(request)
-        }
-      }
-      Await.result(futureResult, 5 seconds)
-    }
+    override def getUser(username: String): Option[User] = Await.result(UsersController.findByEmail(username), 5 seconds)
+    override def whenNoPermissionDoThis(request: RequestHeader) = Ok("Access denied")
+    override def userHasPermission(permission: Permission, user: User) = user.email == "tim.gent@gmail.com" || permission != CourseAdministration
   }
+
+
 }
+
+//Permissions
+object CourseAdministration extends Permission {val displayName = "Course Administrator"}
+object CourseAccess extends Permission {val displayName = "Course Access"}

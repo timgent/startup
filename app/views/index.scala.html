@@ -1,8 +1,10 @@
+@()(implicit request: RequestHeader)
+
 @main("Course Creator") {
     <h1>This is my course creator</h1>
-    <a href="@{controllers.routes.AuthenticationController.loginPage}">Login</a>
     <ul>
         <li><a href="@{controllers.routes.CoursesController.createCourse}">Create a new course</a></li>
+        <li><a href="@{controllers.routes.CoursesController.administerCourses}">Administer courses</a></li>
     </ul>
     <form method="post" action="@{controllers.routes.UsersController.createUser}">
         <label>First Name</label>

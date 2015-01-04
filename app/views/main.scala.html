@@ -1,4 +1,6 @@
-@(title: String)(content: Html)
+@(title: String)(content: Html)(implicit request: RequestHeader)
+
+@import controllers.AuthenticationController.TimSecured
 
 <!DOCTYPE html>
 
@@ -12,7 +14,13 @@
         <script src="@routes.Assets.at("javascripts/hello.js")" type="text/javascript"></script>
     </head>
     <body>
-        <a href="@{controllers.routes.AuthenticationController.logout}">Logout</a>
+
+        @if(request.session.get(Security.username).isDefined) {
+            <a href="@{controllers.routes.AuthenticationController.logout}">Logout</a>
+        } else {
+            <a href="@{controllers.routes.AuthenticationController.loginPage(request.uri)}">Login</a>
+            <a href="@{controllers.routes.AuthenticationController.signupPage}">Sign up</a>
+        }
         @content
     </body>
 </html>

@@ -4,13 +4,14 @@
 
 # Home page
 GET         /                                   controllers.Application.index
-GET         /authentication/loginPage           controllers.AuthenticationController.loginPage
+GET         /authentication/loginPage/:uri      controllers.AuthenticationController.loginPage(uri)
 GET         /authentication/signup              controllers.AuthenticationController.signupPage
 GET         /authentication/logout              controllers.AuthenticationController.logout
 POST        /authentication/authenticate        controllers.AuthenticationController.authenticate
 POST        /authentication/createLogin         controllers.AuthenticationController.createLogin
 POST        /user/createUser                    controllers.UsersController.createUser
 GET         /courses/createCourse               controllers.CoursesController.createCourse
+GET         /courses/administerCourses          controllers.CoursesController.administerCourses
 
 # Map static resources from the /public folder to the /assets URL path
 GET         /assets/*file                       controllers.Assets.at(path="/public", file)

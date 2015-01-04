@@ -1,11 +1,17 @@
+@(url: String)(implicit request: RequestHeader, flash: Flash)
+
 @main("Course Creator") {
   <h1>Login</h1>
   <a href="@{controllers.routes.AuthenticationController.signupPage}">New User? Click here to sign up</a>
+  <p>@flash.get("login")</p>
+  @url
+  Current request is @request
   <form method="post" action="@{controllers.routes.AuthenticationController.authenticate}">
     <label>Email</label>
     <input name="email">
     <label>Password</label>
-    <input name="password">
+    <input type="password" name="password">
+    <input type="hidden" name="url" value="@url">
     <button type="submit">Login</button>
   </form>
 }

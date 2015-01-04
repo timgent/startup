@@ -18,7 +18,7 @@ import play.modules.reactivemongo.json.collection.JSONCollection
 
 object Application extends Controller with MongoController {
 
-  def index = Action {
+  def index = Action { implicit request =>
     Ok(views.html.index())
   }
 

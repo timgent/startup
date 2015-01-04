@@ -1,3 +1,5 @@
+@()(implicit request: RequestHeader)
+
 @main("Course Creator") {
   <h1>Sign up</h1>
   <form method="post" action="@{controllers.routes.AuthenticationController.createLogin}">
